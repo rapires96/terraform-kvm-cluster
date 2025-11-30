@@ -1,6 +1,6 @@
 
 variable "hostname" {
-  default = "test"
+  default = "terraform-vm"
   description = "domain name in libvirt, not hostname"
 }
 
@@ -9,7 +9,7 @@ variable "domain" {
 }
 
 variable "ip_type" {
-  default = "dhcp"
+  default = "static"
 }
 
 variable "memoryMB" {
