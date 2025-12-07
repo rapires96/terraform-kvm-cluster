@@ -13,9 +13,13 @@ variable "ip_type" {
 }
 
 variable "memoryMB" {
-  default = 1024*1
+  default = 1024*2
 }
 
 variable "cpu" {
   default = 1
+} 
+
+variable "token" {
+  default = 12345
 }

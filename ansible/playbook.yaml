@@ -1,0 +1,15 @@
+- name: VM Check Status
+  hosts: all-vms
+  gather_facts: true
+  tasks:
+    - name: Ping VMs
+      ansible.builtin.ping:
+
+- name: install k3s master
+  hosts: master-vm
+  tasks:
+    - name: install k3s master vm1
+      ansible.builtin.command: curl -sfL https://get.k3s.io | sh -
+      
+
+

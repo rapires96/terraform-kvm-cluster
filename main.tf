@@ -1,17 +1,31 @@
-#--- 
+#--- Create replicas for 3 VMsCreate replicas for 3 VMs
 
 locals {
   host_list = toset([ "1", "2", "3" ])
 }
 
+#--- Output
+output "vm_ips" {
+  value = { for k, v in libvirt_domain.domain-ubuntu : k => v.network_interface.0.addresses }
+  description = "IP addresses of the created VMs"
+}
+
 #--- GET ISO IMAGE
+
+resource "libvirt_volume" "base" {
+  name   = "ubuntu-base"
+  pool   = "default"
+  source = "${path.module}/local/jammy-server-cloudimg-amd64.img"
+  format = "qcow2"
+}
 
 # Fetch the ubuntu image
 resource "libvirt_volume" "os_image" {
   for_each = local.host_list
   name = "${var.hostname}-${each.key}-os_image"
-  pool = "homelab"
-  source = "${path.module}/local/jammy-server-cloudimg-amd64.img"
+  pool = "default"
+  #source = "${path.module}/local/jammy-server-cloudimg-amd64.img"
+  base_volume_id = libvirt_volume.base.id
   format = "qcow2"
 }
 
@@ -19,12 +33,13 @@ resource "libvirt_volume" "os_image" {
 
 # 1a. Retrieve our local cloud_init.cfg and update its content (= add ssh-key) using variables
 data "template_file" "user_data" {
-  template = file("${path.module}/assets/cloud_init.cfg")
   for_each = local.host_list
+  template = file("${path.module}/assets/cloud_init_${each.key}.cfg")
   vars = {
-    hostname = var.hostname
+    hostname = "${var.hostname}-${each.key}"
     fqdn = "${var.hostname}-${each.key}.${var.domain}"
     public_key = file("${path.module}/.ssh/id_homelab.pub")
+    token = var.token
   }
 }
 
@@ -34,7 +49,7 @@ data "template_cloudinit_config" "config" {
   for_each = local.host_list
   base64_encode = false
   part {
-    filename = "init.cfg"
+    filename = "cloud_init_${each.key}.cfg"
     content_type = "text/cloud-config"
     # content = "${data.template_file.user_data.rendered}"
     content = data.template_file.user_data[each.key].rendered
@@ -43,20 +58,20 @@ data "template_cloudinit_config" "config" {
 
 # 2. Retrieve our network_config
 data "template_file" "network_config" {
-  template = file("${path.module}/assets/network_config_${var.ip_type}.cfg")
+  for_each = local.host_list
+  template = file("${path.module}/assets/network_config_${var.ip_type}_${each.key}.cfg")
 }
 
 # 3. Add ssh-key and network config to the instance
 resource "libvirt_cloudinit_disk" "commoninit" {
   for_each = local.host_list
   name = "${var.hostname}-${each.key}-commoninit.iso"
-  pool = "homelab"
+  pool = "default"
   user_data      = data.template_cloudinit_config.config[each.key].rendered
-  network_config = data.template_file.network_config.rendered
+  network_config = data.template_file.network_config[each.key].rendered
 }
 
 #--- CREATE VM
-
 resource "libvirt_domain" "domain-ubuntu" {
   for_each = local.host_list
   name = "${var.hostname}-${each.key}"
@@ -85,4 +100,4 @@ resource "libvirt_domain" "domain-ubuntu" {
     listen_type = "address"
     autoport    = "true"
   }
-}
+} 
