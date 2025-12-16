@@ -1,0 +1,9 @@
+flush ruleset;
+
+table ip LB {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		tcp dport 8080 counter;
+		tcp dport 8080 numgen inc mod 2 == 0 counter;
+	}
+}

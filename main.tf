@@ -81,6 +81,10 @@ resource "libvirt_domain" "domain-ubuntu" {
   disk {
     volume_id = libvirt_volume.os_image[each.key].id
   }
+
+  # dynamic "network_interface" {
+  #  
+  # }
   network_interface {
     network_name = "default"
   }
