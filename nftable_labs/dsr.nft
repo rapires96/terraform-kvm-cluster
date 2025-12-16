@@ -1,0 +1,12 @@
+flush ruleset;
+
+table netdev filter {
+	chain ingress {
+		type filter hook ingress device ens3 priority 0; policy accept;
+		ip daddr 192.168.122.100 tcp dport 8080 ether saddr set ee:06:9a:8f:d8:09 ether daddr set jhash ip saddr . tcp sport mod 2 map {
+			0 : 52:54:00:7a:27:61,
+			1 : 52:54:00:2a:93:21 
+		} fwd to ens3;
+	}
+}
+# netdev table allows you to use the ingress hook

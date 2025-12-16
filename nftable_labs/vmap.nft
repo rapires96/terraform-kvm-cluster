@@ -1,0 +1,22 @@
+flush ruleset;
+
+table ip filter {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		ct state vmap {established: accept, related: accept, invalid: drop};
+		iifname . ip protocol vmap {
+			ens3 . tcp : jump CHAIN_TCP,
+			ens3 . udp : goto CHAIN_UDP,
+			ens3 . icmp : jump CHAIN_ICMP
+		}
+	}
+	chain CHAIN_TCP{
+		counter accept;
+	}
+	chain CHAIN_UDP{
+		counter accept;
+	}
+	chain CHAIN_ICMP{
+		counter accept;
+	}
+} 

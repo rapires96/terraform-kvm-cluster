@@ -1,0 +1,28 @@
+flush ruleset;
+
+table ip filter {
+	set stage1 {
+		typeof ip saddr;
+		flags timeout;
+	}
+
+	set stage2 {
+		typeof ip saddr;
+		flags timeout;
+	}
+
+	set stage3 {
+		typeof ip saddr;
+		flags timeout;
+	}
+
+	chain input {
+		type filter hook input priority filter; policy accept;
+		ct state related, established accept;
+		ct state new ip saddr 192.168.122.1 tcp dport 22 accept;
+		ct state new ip saddr @stage2 tcp dport 22 add @stage3 { ip saddr timeout 1d }
+		ct state new ip saddr @stage1 tcp dport 22 add @stage2 { ip saddr timeout 1m }
+		ct state new tcp dport 22 add @stage1 { ip saddr timeout 1m };
+		ct state new ip saddr @stage3 tcp dport 22 drop;
+	}
+}

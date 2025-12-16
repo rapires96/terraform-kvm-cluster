@@ -1,0 +1,23 @@
+flush ruleset;
+
+table ip nat {
+	set ALLOWED_SRC {
+		typeof ip saddr;
+		flags interval, constant;
+		auto-merge;
+		elements = {192.168.121.0/24}
+	}
+	chain POSTROUTING {
+		type nat hook postrouting priority srcnat; policy accept;
+		oifname ens3 jump NAT_ENS3;
+	}
+	chain NAT_ENS3 {
+		ip saddr @ALLOWED_SRC snat ip to numgen random mod 3 map {
+			0 : 192.168.122.10,
+			1 : 192.168.122.11,
+			2 : 192.168.122.12
+		}
+	}
+}
+# ens4 interface is the private internal ip interface and ens3 is the outward facing interface 
+# we assigned multiple ips to interface ens3 so NAT randomly uses multiple src global ips

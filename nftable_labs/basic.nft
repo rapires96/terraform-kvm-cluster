@@ -1,0 +1,28 @@
+flush ruleset
+
+table ip filter {
+	chain INPUT1 {
+		type filter hook input priority filter; policy accept;
+		tcp dport 80 counter jump CHAIN2;
+	}
+	chain OUTPUT {
+		type filter hook output priority filter; policy accept; 
+		tcp dport 80 counter;
+
+	}
+	chain INPUT2 {
+		type filter hook input priority filter; policy accept;
+		tcp dport 80 counter jump CHAIN1;
+		tcp dport 80 counter jump CHAIN2;
+	}
+	chain CHAIN1 {
+		counter accept;
+		counter return;
+	}
+	chain CHAIN2 {
+		counter reject;
+	}
+}
+# packets that match tcp dport will first go to INPUT2 chain
+# jump to chain
+# drop silently deletes the packet and stops further processing, reject notifies the sender

@@ -1,0 +1,19 @@
+flush ruleset;
+
+table ip LB {
+	map DST_SERVERS {
+		typeof numgen random mod 2: ip daddr . tcp dport
+         	elements = {
+             		0: 192.168.121.20 . 8080,
+             		1: 192.168.121.30 . 8080
+         	}
+     	}
+
+	chain PREROUTING {
+		type nat hook prerouting priority dstnat; policy accept; 
+		iifname ens4 ip daddr 192.168.122.10 tcp dport 8080 dnat to numgen inc mod 2 map {
+			0: 192.168.121.20,
+			1: 192.168.121.30
+		};	
+	}
+}

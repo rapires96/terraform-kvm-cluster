@@ -1,0 +1,18 @@
+flush ruleset 
+
+table ip filter {
+	counter cnt_ssh {
+	}
+	set allowed_flows {
+		typeof ip saddr . tcp dport;
+		elements = { 192.168.122.20 . 22, 192.168.122.30 . 22, 192.168.122.20 . 8080, 192.168.122.30 . 8080 };
+	}	
+	chain input {
+		type filter hook input priority filter; policy accept;
+		ct state established, related counter accept;
+		ct state invalid counter drop;
+		iif lo counter accept;
+		ct state new ip saddr . tcp dport @allowed_flows counter name cnt_ssh accept;
+		counter drop;
+	}
+}

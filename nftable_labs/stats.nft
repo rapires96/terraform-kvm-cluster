@@ -1,0 +1,14 @@
+flush ruleset;
+
+table ip filter {
+	set outgoing_tcp_connections {
+		typeof meta skuid  . ip daddr . tcp dport;
+		counter;
+	}
+	chain output {
+		type filter hook output priority filter; policy accept;
+		ct state new ip protocol tcp add @outgoing_tcp_connections  { meta skuid . ip daddr . tcp dport };
+	}
+}
+# meta skuid: user id that owns the socket
+# when printing the stats with nft list ruleset, see userids with getent passwd <uid-number>

@@ -1,0 +1,18 @@
+#DNAT LAB -> traffic comming from public network redirected to private network ip:port port forwarding use case.
+# vm3 has running python3 -m http.server 8080
+flush ruleset;
+
+table ip nat {
+	map service_map {
+		typeof tcp dport : ip daddr . tcp dport
+		elements = {
+			80: 192.168.121.30 . 8080,
+			2020: 192.168.121.30 . 22
+		}
+	}
+	chain PREROUTING {
+		type nat hook prerouting priority dstnat; policy accept;
+		iifname ens3 dnat ip addr . port to tcp dport map @service_map;
+	}
+
+}
