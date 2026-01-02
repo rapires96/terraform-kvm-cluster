@@ -1,0 +1,12 @@
+flush ruleset;
+
+table ip tcp-limit {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		tcp dport 5201 meter speed_limit { ip saddr . tcp sport limit rate 1 mbytes/second } accept;
+		tcp dport 5201 counter drop;
+	}
+}
+
+# burst 3 mbytes optional parameters to allow bursts
+# goo to try with vm1 as iperf3 server and the other vms as clients

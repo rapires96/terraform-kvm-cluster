@@ -81,13 +81,25 @@ resource "libvirt_domain" "domain-ubuntu" {
   disk {
     volume_id = libvirt_volume.os_image[each.key].id
   }
-
-  # dynamic "network_interface" {
-  #  
-  # }
-  network_interface {
-    network_name = "default"
+  # vm2 and vm1 have ni in default kvm vnet
+  dynamic "network_interface" {
+    for_each = index(tolist(local.host_list), each.key) != 2 ? [1] : []
+    content {
+      network_name = "default"
+    }
   }
+  # vm3 and vm1 have ni in default kvm vnet
+  dynamic "network_interface" {
+    for_each = index(tolist(local.host_list), each.key) != 1 ? [1] : []
+    content {
+      network_name = "network1"
+    }
+  }
+
+  # Basic network definition 
+  #network_interface {
+  #  network_name = "default"
+  #}
 
   cloudinit = libvirt_cloudinit_disk.commoninit[each.key].id
 

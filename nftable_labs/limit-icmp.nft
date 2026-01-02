@@ -1,0 +1,9 @@
+flush ruleset;
+
+table ip icmp-limit {
+	chain INPUT {
+		type filter hook input priority filter; policy accept;
+		ip protocol icmp icmp type echo-request meter limit_icmp {ip saddr limit rate over 1/second} accept;
+		ip protocol icmp icmp type echo-request counter drop;
+	}
+}
