@@ -88,7 +88,7 @@ resource "libvirt_domain" "domain-ubuntu" {
       network_name = "default"
     }
   }
-  # vm3 and vm1 have ni in default kvm vnet
+  # vm3 and vm1 have ni in network1 kvm vnet
   dynamic "network_interface" {
     for_each = index(tolist(local.host_list), each.key) != 1 ? [1] : []
     content {
