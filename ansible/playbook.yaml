@@ -1,15 +1,40 @@
 - name: VM Check Status
-  hosts: all-vms
+  hosts: all_vms
   gather_facts: true
   tasks:
     - name: Ping VMs
       ansible.builtin.ping:
 
 - name: install k3s master
-  hosts: master-vm
+  hosts: master_vm
+  become: true
   tasks:
     - name: install k3s master vm1
-      ansible.builtin.command: curl -sfL https://get.k3s.io | sh -
-      
+      shell: |
+        curl -sfL https://get.k3s.io | sh -
+    - name: get token
+      shell: cat /var/lib/rancher/k3s/server/token
+      register: token
+    #- name: copy token
+    #  shell: echo "{{ token.stdout }}" > copy.txt
 
-
+- name: install k3s agent 1
+  hosts: worker_vm1
+  become: true
+  tasks:
+    - name: connect to master
+      shell: |
+        curl -sfL https://get.k3s.io \
+        | INSTALL_K3S_EXEC="agent" \
+        K3S_TOKEN="{{ hostvars['master_vm'].token.stdout }}" sh -s \
+        - --server https://192.168.122.10:6443
+- name: install k3s agent 2
+  hosts: worker_vm2
+  become: true
+  tasks:
+    - name: connect to master
+      shell: |
+        curl -sfL https://get.k3s.io \
+        | INSTALL_K3S_EXEC="agent" \
+        K3S_TOKEN="{{ hostvars['master_vm'].token.stdout }}" sh -s \
+        - --server https://192.168.121.10:6443

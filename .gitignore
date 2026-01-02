@@ -36,3 +36,6 @@ terraform.rc
 # ISO images
 *.img
 .ssh/*
+
+#Ignore nftable labs
+.nftable_labs/
