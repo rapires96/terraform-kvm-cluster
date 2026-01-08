@@ -15,8 +15,8 @@
     - name: get token
       shell: cat /var/lib/rancher/k3s/server/token
       register: token
-    #- name: copy token
-    #  shell: echo "{{ token.stdout }}" > copy.txt
+    - name: symlink kubeconfig
+      shell: ln --symbolic /etc/rancher/k3s/k3s.yaml /home/ubuntu/k3s.yaml && chown ubuntu /home/ubuntu/k3s.yaml
 
 - name: install k3s agent 1
   hosts: worker_vm1
