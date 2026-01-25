@@ -11,7 +11,7 @@
   tasks:
     - name: install k3s master vm1
       shell: |
-        curl -sfL https://get.k3s.io | sh -
+        curl -sfL https://get.k3s.io | sh -s - server --node-ip 10.255.255.1 --advertise-address 10.255.255.1
     - name: get token
       shell: cat /var/lib/rancher/k3s/server/token
       register: token
@@ -27,7 +27,7 @@
         curl -sfL https://get.k3s.io \
         | INSTALL_K3S_EXEC="agent" \
         K3S_TOKEN="{{ hostvars['master_vm'].token.stdout }}" sh -s \
-        - --server https://192.168.122.10:6443
+        - --server https://10.255.255.1:6443
 - name: install k3s agent 2
   hosts: worker_vm2
   become: true
@@ -37,4 +37,4 @@
         curl -sfL https://get.k3s.io \
         | INSTALL_K3S_EXEC="agent" \
         K3S_TOKEN="{{ hostvars['master_vm'].token.stdout }}" sh -s \
-        - --server https://192.168.121.10:6443
+        - --server https://10.255.255.1:6443
